@@ -1,8 +1,9 @@
+#include <Arduino.h>
 #include "Audio.h"
 #include "SD.h"
 #include "FS.h"
 
-// Digital I/O used
+// Pins digitals utilitzats (Segons enunciat )
 #define SD_CS          5
 #define SPI_MOSI      23
 #define SPI_MISO      19
@@ -14,53 +15,35 @@
 Audio audio;
 
 void setup() {
-  pinMode(SD_CS, OUTPUT);
-  digitalWrite(SD_CS, HIGH);
-  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-  Serial.begin(115200);
-  SD.begin(SD_CS);
-  audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
-  audio.setVolume(10); // 0...21
-  
-  // Canvia el nom pel del teu fitxer .wav o .mp3
-  audio.connecttoFS(SD, "/Ensoniq-ZR-76-01-Dope-77.wav"); 
+    pinMode(SD_CS, OUTPUT);
+    digitalWrite(SD_CS, HIGH);
+    
+    // Inicialització SPI per a la targeta SD
+    SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+    Serial.begin(115200);
+    
+    if(!SD.begin(SD_CS)){
+        Serial.println("Error: No s'ha pogut muntar la targeta SD");
+        return;
+    }
+
+    // Configuració pins I2S 
+    audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
+    audio.setVolume(12); // Nivell de volum (0-21)
+
+    // IMPORTANT: El fitxer ha d'estar a l'arrel de la SD amb aquest nom exacte
+    audio.connecttoFS(SD, "/audio.wav"); 
 }
 
 void loop() {
-  audio.loop();
+    audio.loop(); // Gestiona la reproducció i els callbacks 
 }
 
-// Funcions opcionals per mostrar informació (Callbacks)
+// Callbacks opcionals per veure info al monitor sèrie
 void audio_info(const char *info) {
-  Serial.print("info "); Serial.println(info);
+    Serial.print("info: "); Serial.println(info);
 }
-void audio_id3data(const char *info) { //id3 metadata
-  Serial.print("id3data "); Serial.println(info);
-}
-void audio_eof_mp3(const char *info) { //end of file
-  Serial.print("eof_mp3 "); Serial.println(info);
-}
-void audio_showstation(const char *info) {
-  Serial.print("station "); Serial.println(info);
-}
-void audio_showstreaminfo(const char *info) {
-  Serial.print("streaminfo "); Serial.println(info);
-}
-void audio_showstreamtitle(const char *info) {
-  Serial.print("streamtitle "); Serial.println(info);
-}
-void audio_bitrate(const char *info) {
-  Serial.print("bitrate "); Serial.println(info);
-}
-void audio_commercial(const char *info) { //duration in sec
-  Serial.print("commercial "); Serial.println(info);
-}
-void audio_icyurl(const char *info) { //homepage
-  Serial.print("icyurl "); Serial.println(info);
-}
-void audio_lasthost(const char *info) { //stream URL played
-  Serial.print("lasthost "); Serial.println(info);
-}
-void audio_eof_speech(const char *info) {
-  Serial.print("eof_speech "); Serial.println(info);
+
+void audio_eof_mp3(const char *info) {
+    Serial.println("Final de l'arxiu.");
 }
