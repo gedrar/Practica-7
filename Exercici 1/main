@@ -13,7 +13,7 @@ void setup() {
   aac = new AudioGeneratorAAC();
   out = new AudioOutputI2S();
   out->SetGain(0.125);
-  out->SetPinout(26, 25, 22);
+  out->SetPinout(17, 16, 15);
   aac->begin(in, out);
 }
 
