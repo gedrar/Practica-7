@@ -8,16 +8,16 @@
 // ────────────────────────────────────────────────────────────
 
 // ── Pines SPI para el módulo SD ─────────────────────────────
-#define SD_CS       5
-#define SPI_MOSI    23
-#define SPI_MISO    19
-#define SPI_SCK     18
+#define SD_CS       39
+#define SPI_MOSI    35
+#define SPI_MISO    37
+#define SPI_SCK     36
 // ────────────────────────────────────────────────────────────
 
 // ── Pines I2S para el MAX98357A ─────────────────────────────
 #define I2S_DOUT    4   // Serial Data  → MAX98357A DIN
-#define I2S_BCLK    5   // Bit Clock    → MAX98357A BCLK
-#define I2S_LRC     6   // Word Select  → MAX98357A LRC
+#define I2S_BCLK    6   // Bit Clock    → MAX98357A BCLK
+#define I2S_LRC     7   // Word Select  → MAX98357A LRC
 // ────────────────────────────────────────────────────────────
 
 Audio audio;
