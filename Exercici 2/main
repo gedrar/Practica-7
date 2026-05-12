@@ -4,7 +4,7 @@
 #include "FS.h"
 
 // ── Nombre del archivo de audio en la SD ────────────────────
-#define AUDIO_FILE  "/Ensoniq-ZR-76-01-Dope-77.wav"
+#define AUDIO_FILE  "/audio.wav"
 // ────────────────────────────────────────────────────────────
 
 // ── Pines SPI para el módulo SD ─────────────────────────────
