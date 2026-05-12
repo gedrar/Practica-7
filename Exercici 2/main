@@ -3,47 +3,118 @@
 #include "SD.h"
 #include "FS.h"
 
-// Pins digitals utilitzats (Segons enunciat )
-#define SD_CS          5
-#define SPI_MOSI      23
-#define SPI_MISO      19
-#define SPI_SCK       18
-#define I2S_DOUT      25
-#define I2S_BCLK      27
-#define I2S_LRC       26
+// ── Nombre del archivo de audio en la SD ────────────────────
+#define AUDIO_FILE  "/Ensoniq-ZR-76-01-Dope-77.wav"
+// ────────────────────────────────────────────────────────────
+
+// ── Pines SPI para el módulo SD ─────────────────────────────
+#define SD_CS       5
+#define SPI_MOSI    23
+#define SPI_MISO    19
+#define SPI_SCK     18
+// ────────────────────────────────────────────────────────────
+
+// ── Pines I2S para el MAX98357A ─────────────────────────────
+#define I2S_DOUT    4   // Serial Data  → MAX98357A DIN
+#define I2S_BCLK    5   // Bit Clock    → MAX98357A BCLK
+#define I2S_LRC     6   // Word Select  → MAX98357A LRC
+// ────────────────────────────────────────────────────────────
 
 Audio audio;
 
 void setup() {
+    Serial.begin(115200);
+    Serial.println("=== Practica 7 - Ejercicio 2 ===");
+
+    // Inicializa bus SPI para la tarjeta SD
     pinMode(SD_CS, OUTPUT);
     digitalWrite(SD_CS, HIGH);
-    
-    // Inicialització SPI per a la targeta SD
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-    Serial.begin(115200);
-    
-    if(!SD.begin(SD_CS)){
-        Serial.println("Error: No s'ha pogut muntar la targeta SD");
-        return;
+
+    // Monta la tarjeta SD
+    if (!SD.begin(SD_CS)) {
+        Serial.println("ERROR: No se pudo montar la tarjeta SD.");
+        Serial.println("Comprueba el cableado y el formato (FAT32).");
+        while (true) delay(1000);   // Detiene la ejecución
+    }
+    Serial.println("Tarjeta SD montada correctamente.");
+
+    // Configura pines I2S y volumen
+    audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
+    audio.setVolume(10);   // Rango: 0 (mudo) – 21 (máximo)
+
+    // Verifica que el archivo exista antes de reproducir
+    if (!SD.exists(AUDIO_FILE)) {
+        Serial.printf("ERROR: Archivo no encontrado: %s\n", AUDIO_FILE);
+        Serial.println("Copia el archivo WAV en la raiz de la SD.");
+        while (true) delay(1000);
     }
 
-    // Configuració pins I2S 
-    audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
-    audio.setVolume(12); // Nivell de volum (0-21)
-
-    // IMPORTANT: El fitxer ha d'estar a l'arrel de la SD amb aquest nom exacte
-    audio.connecttoFS(SD, "/audio.wav"); 
+    // Inicia reproducción
+    audio.connecttoFS(SD, AUDIO_FILE);
+    Serial.printf("Reproduciendo: %s\n", AUDIO_FILE);
 }
 
 void loop() {
-    audio.loop(); // Gestiona la reproducció i els callbacks 
+    audio.loop();   // Debe llamarse continuamente para mantener el flujo de audio
 }
 
-// Callbacks opcionals per veure info al monitor sèrie
+// ── Callbacks opcionales: información por puerto serie ───────
+
 void audio_info(const char *info) {
-    Serial.print("info: "); Serial.println(info);
+    Serial.print("info       : ");
+    Serial.println(info);
 }
 
-void audio_eof_mp3(const char *info) {
-    Serial.println("Final de l'arxiu.");
+void audio_id3data(const char *info) {   // Metadatos ID3
+    Serial.print("id3data    : ");
+    Serial.println(info);
+}
+
+void audio_eof_mp3(const char *info) {   // Fin de archivo
+    Serial.print("eof_mp3    : ");
+    Serial.println(info);
+    Serial.println("Fin del archivo. Reiniciando en 3 s...");
+    delay(3000);
+    audio.connecttoFS(SD, AUDIO_FILE);   // Reproduce en bucle
+}
+
+void audio_showstation(const char *info) {
+    Serial.print("station    : ");
+    Serial.println(info);
+}
+
+void audio_showstreaminfo(const char *info) {
+    Serial.print("streaminfo : ");
+    Serial.println(info);
+}
+
+void audio_showstreamtitle(const char *info) {
+    Serial.print("streamtitle: ");
+    Serial.println(info);
+}
+
+void audio_bitrate(const char *info) {
+    Serial.print("bitrate    : ");
+    Serial.println(info);
+}
+
+void audio_commercial(const char *info) {   // Duración en segundos
+    Serial.print("commercial : ");
+    Serial.println(info);
+}
+
+void audio_icyurl(const char *info) {   // URL de la emisora
+    Serial.print("icyurl     : ");
+    Serial.println(info);
+}
+
+void audio_lasthost(const char *info) {   // URL del stream reproducido
+    Serial.print("lasthost   : ");
+    Serial.println(info);
+}
+
+void audio_eof_speech(const char *info) {
+    Serial.print("eof_speech : ");
+    Serial.println(info);
 }
